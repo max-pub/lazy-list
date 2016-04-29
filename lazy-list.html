@@ -1,0 +1,52 @@
+
+<dom-module id="lazy-list">
+    <style>
+        :host{
+            display: block;
+        }
+        :host.loading{
+            height: 300px;
+            border: 1px solid silver;
+        }
+    </style>
+
+
+    <template>
+        <content></content>
+        <template id='repeater' is="dom-repeat" items="[[items]]"></template>
+    </template>
+</dom-module>
+
+
+
+<script>
+    Polymer({
+        is: "lazy-list",
+        properties: {
+            list: Array
+        },
+        ready: function () {
+            this.$.repeater.templatize(this.querySelector('template'));
+        },
+        getScrollBox: function(element){
+            if(element.scrollHeight > element.offsetHeight + 10) return element;
+            else return this.getScrollBox(element.parentElement);
+        },
+        attached: function(){
+            this.toggleClass('loading',true);
+            var ScrollBox = this.getScrollBox(this);
+            ScrollBox.addEventListener('scroll',function(){
+                if(this.offsetTop > ScrollBox.scrollTop+ScrollBox.offsetHeight) return;
+                if(this.offsetTop+this.offsetHeight < ScrollBox.scrollTop) return;
+                if(this.getAttribute('class').indexOf('loading') === -1) return;
+                // console.log('attr',this.getAttribute('class'));
+                this.toggleClass('loading',false);
+                this.set('items',this.list);
+                console.log('loading',this.list.length,this);
+            }.bind(this));
+            ScrollBox.scrollTop = 1;
+            ScrollBox.scrollTop = 0;
+        }
+    });
+</script>
+
