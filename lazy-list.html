@@ -6,6 +6,7 @@
         }
         :host.loading{
             height: 300px;
+            background: #eee;
             border: 1px solid silver;
         }
     </style>
@@ -26,26 +27,63 @@
             list: Array
         },
         ready: function () {
-            this.$.repeater.templatize(this.querySelector('template'));
+            console.log('ready:',this.title);
+            // this.$.repeater.templatize(this.querySelector('template'));
         },
         getScrollBox: function(element){
-            if(element.scrollHeight > element.offsetHeight + 10) return element;
-            else return this.getScrollBox(element.parentElement);
+            // console.log('scrollbox',element);
+            // if(!element) setTimeout(function(){console.log('timeout',element);this.getScrollBox(element)}.bind(this),100);
+            // if(!element) return;
+            // if(element.scrollHeight > element.offsetHeight + 50) return element;
+            // else return this.getScrollBox(element.parentElement);
+            var style = window.getComputedStyle(element);
+            // style = Object.keys(style).map(function (key) {return style[key]});
+            // var i = style.indexOf('overflow-y');
+            if(style['overflow-y'].toLowerCase()==='visible') return this.getScrollBox(element.parentElement);
+            // console.log('getScrollBox',element,element.scrollHeight, element.offsetHeight)
+            // console.log('getScrollBox',style['overflow-y']);
+            return element;
         },
         attached: function(){
+            // console.log('attached',this.title);
+            // setTimeout(function(){
+
+            this.$.repeater.templatize(this.querySelector('template'));
             this.toggleClass('loading',true);
-            var ScrollBox = this.getScrollBox(this);
-            ScrollBox.addEventListener('scroll',function(){
-                if(this.offsetTop > ScrollBox.scrollTop+ScrollBox.offsetHeight) return;
-                if(this.offsetTop+this.offsetHeight < ScrollBox.scrollTop) return;
-                if(this.getAttribute('class').indexOf('loading') === -1) return;
-                // console.log('attr',this.getAttribute('class'));
+            this.ScrollBox = this.getScrollBox(this);
+            // console.log('attached',this.title);//,'to',this.ScrollBox);
+            // this.ScrollBox.addEventListener('scroll',this.test.bind(this),false);
+            this.eventID = EVENT.set(this.ScrollBox,'scroll',this.test.bind(this),this.title);
+            // console.log('attached to',this.ScrollBox);
+            // setTimeout(function(){
+            this.ScrollBox.scrollTop = 1;
+            this.ScrollBox.scrollTop = 0;
+            // console.log('func',this.test.bind(this));
+            // console.log('total:',getEventListeners(document.getElementsByTagName('main')[0]));
+            // }.bind(this),500);
+        },
+        detached: function(){
+            // console.log('detached',this.title);//,'from',this.ScrollBox);
+            EVENT.del(this.eventID);
+            // this.ScrollBox.removeEventListener('scroll',this.test.bind(this),false);
+            // console.log('total:',getEventListeners(document.getElementsByTagName('main')[0]));
+        },
+        test: function(){
+            // if(this.title.indexOf('2016') !== -1)
+                // console.log('TEST',this.title,this.offsetTop);
+            setTimeout(function(){
+            if(this.offsetTop > this.ScrollBox.scrollTop+this.ScrollBox.offsetHeight) return;
+            if(this.offsetTop+this.offsetHeight < this.ScrollBox.scrollTop) return;
+            if(this.getAttribute('class').indexOf('loading') === -1) return;
+            // console.log('test POS',this.title);
+            // console.log('attr',this.getAttribute('class'));
+                console.log('loading',this.title,this.list.length,this);
+                // console.log('   scroll',this.ScrollBox.scrollTop,'+',this.ScrollBox.offsetHeight);
+                // console.log('   node',this.offsetTop,'+',this.offsetHeight);
                 this.toggleClass('loading',false);
                 this.set('items',this.list);
-                console.log('loading',this.list.length,this);
-            }.bind(this));
-            ScrollBox.scrollTop = 1;
-            ScrollBox.scrollTop = 0;
+                // console.log('loading',this.list.length,this);
+            }.bind(this),10);
         }
     });
 </script>
